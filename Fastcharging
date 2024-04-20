@@ -1,0 +1,72 @@
+#base thermal reconfiguration for independent cycle. basic bypass
+
+
+import pybamm
+import numpy as np
+
+# Define the initial states of each battery
+updated_states_list = [1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1]
+
+# Set the number of cycles to run
+num_cycles = 10
+
+# Repeat the process for the specified number of cycles
+for cycle in range(num_cycles):
+    print(f"Cycle {cycle + 1}:")
+    
+    for battery_number, battery_state in enumerate(updated_states_list, start=1):
+        # Define the corresponding actions for each battery state
+        if battery_state == 0:
+            experiment = pybamm.Experiment(
+                [
+                    "Rest for 1 hour",
+                ]
+            )
+        elif battery_state == 1:
+            experiment = pybamm.Experiment(
+                [
+                    "Discharge at 2C for 15 minutes or until 2 V",
+                ]
+            )
+
+            
+
+
+        lumped_thermal_model = pybamm.lithium_ion.DFN(
+            {"thermal": "lumped"}, name="lumped thermal model"
+        )
+
+        parameter_values = pybamm.ParameterValues("Marquis2019")
+        #parameter_values = pybamm.ParameterValues("ORegan2022")
+
+        A = parameter_values["Electrode width [m]"] * parameter_values["Electrode height [m]"]
+        lumped_params = parameter_values.copy()
+        lumped_params.update(
+            {
+            "Total heat transfer coefficient [W.m-2.K-1]": 5,
+            "Cell cooling surface area [m2]": 2 * A,
+        }
+        )
+
+        
+        sim = pybamm.Simulation(lumped_thermal_model, parameter_values=lumped_params, experiment=experiment )
+        solution = sim.solve()
+    
+
+
+        # Extract time and voltage
+        te = solution["Volume-averaged cell temperature [K]"]
+
+        # Example of evaluating voltage at a specific time (120 seconds)
+        celltemp_at_120_seconds = te(120)
+
+        # Update battery state based on voltage
+        if celltemp_at_120_seconds < 298.5:
+            updated_states_list[battery_number - 1] = 1
+            
+        elif celltemp_at_120_seconds > 298.5:
+            updated_states_list[battery_number - 1] = 0
+
+    # Print the updated states list after each cycle
+    print("Updated states list after cycle:", updated_states_list)
+    print()
