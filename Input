@@ -1,0 +1,21 @@
+# Battery cell parameters
+cell_numbers = 2
+nominal_voltage_per_cell = 4.7  # in volts
+nominal_capacity_per_cell = 5  # in A.h
+SoC_limits_per_cell = [0.05, 0.95]
+cut_off_voltage_per_cell = 2.0  # in volts
+
+# Thermal parameters
+thermal_capacitance = 40.23  # in J/K
+Total_heat_transfer_coefficient = 5  # in W.m-2.K-1
+Cell_cooling_surface_area = 2
+environment_temperature = 298  # in Kelvin
+
+
+# optimization 
+Discharge_rate = 2  # in C
+Charge_rate = 1  # in C
+sampling_time = 120  # in seconds
+temperature_threshold = 305  # in Kelvin
+temperature_balancing_threshold = 0.5  # in Kelvin
+num_cycles = 60
